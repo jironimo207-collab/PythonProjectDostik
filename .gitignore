@@ -1,0 +1,7 @@
+.env
+*.db
+lnx_venv/
+.venv/
+__pycache__/
+*.pyc
+.idea/

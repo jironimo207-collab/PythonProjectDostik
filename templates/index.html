@@ -145,266 +145,238 @@ body {
 
 <body>
 
-<!-- ═════════ HEADER ═════════ -->
-
 <header class="shop-header py-3 mb-5 shadow">
     <div class="container">
-
         <div class="d-flex justify-content-between align-items-center">
-
             <div class="d-flex align-items-center gap-3">
                 <span style="font-size:2rem">🍺</span>
                 <span class="logo-title">DOCTIC</span>
             </div>
         </div>
-
     </div>
 </header>
 
-<!-- ═════════ CONTENT ═════════ -->
-
 <div class="container pb-5">
-
     <div class="row g-4">
 
-        <!-- ═════════ SIDEBAR ═════════ -->
-
         <aside class="col-lg-3">
-
             <div class="filter-sidebar p-4 position-sticky" style="top:20px">
-
-                <div class="section-title mb-4">
-                    ⚡ Фильтры
-                </div>
-
-                <p class="text-muted small fw-bold text-uppercase mb-2">
-                    Сорт
-                </p>
-
+                <div class="section-title mb-4">⚡ Фильтры</div>
+                <p class="text-muted small fw-bold text-uppercase mb-2">Сорт</p>
                 <div class="d-flex flex-column gap-1">
-
                     <div class="form-check">
-                        <input type="checkbox"
-                               class="form-check-input"
-                               id="f-all"
-                               checked>
-
-                        <label class="form-check-label" for="f-all">
-                            Все сорта
-                        </label>
+                        <input type="checkbox" class="form-check-input" id="f-all" checked>
+                        <label class="form-check-label" for="f-all">Все сорта</label>
                     </div>
-
                     <div class="form-check">
-                        <input type="checkbox"
-                               class="form-check-input"
-                               id="f-light">
-
-                        <label class="form-check-label" for="f-light">
-                            Светлое
-                        </label>
+                        <input type="checkbox" class="form-check-input" id="f-light">
+                        <label class="form-check-label" for="f-light">Светлое</label>
                     </div>
-
                     <div class="form-check">
-                        <input type="checkbox"
-                               class="form-check-input"
-                               id="f-dark">
-
-                        <label class="form-check-label" for="f-dark">
-                            Тёмное
-                        </label>
+                        <input type="checkbox" class="form-check-input" id="f-dark">
+                        <label class="form-check-label" for="f-dark">Тёмное</label>
                     </div>
-
                 </div>
-
             </div>
-
         </aside>
 
-        <!-- ═════════ CATALOG ═════════ -->
-
         <main class="col-lg-9">
-
             <div class="d-flex justify-content-between align-items-center mb-4">
-
                 <p class="text-muted mb-0">
-                    Найдено:
-                    <strong id="items-count">
-                        {{ items|length }}
-                    </strong>
+                    Найдено: <strong id="items-count">{{ items|length }}</strong>
                 </p>
-
             </div>
 
             <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4">
-
                 {% for item in items %}
-
-                <div class="col beer-item"
-                     data-category="{{ item.category }}">
-
+                <div class="col beer-item" data-category="{{ item.category }}">
                     <div class="card product-card">
 
-                        <!-- IMAGE -->
-
                         <div class="card-img-wrapper">
-
-
-                            <img
-                                class="card-img-top"
-                                src="{{ item.image if item.image else '/static/no-image.png' }}"
-                                alt="{{ item.title }}"
-                                onerror="this.style.display='none'">
-
+                            <img class="card-img-top"
+                                 src="{{ item.image if item.image else '/static/no-image.png' }}"
+                                 alt="{{ item.title }}"
+                                 onerror="this.style.display='none'">
                         </div>
 
-                        <!-- BODY -->
-
                         <div class="card-body d-flex flex-column p-3">
-
-                            <h5 class="fw-bold mb-2">
-                                {{ item.title }}
-                            </h5>
-
+                            <h5 class="fw-bold mb-2">{{ item.title }}</h5>
                             <p class="text-muted small flex-grow-1">
                                 {{ item.description or 'Описание скоро появится...' }}
                             </p>
-
                             <div class="price text-center my-2">
                                 {{ item.price }} ₸
                             </div>
 
-                            <form action="/add_item/{{ item.id }}" method="POST">
-
-
-                            </form>
-
+                            <button type="button"
+                                    class="btn btn-cart w-100 py-2 mt-2"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#orderModal"
+                                    data-beer-title="{{ item.title }}">
+                                Предзаказ
+                            </button>
                         </div>
 
                     </div>
-
                 </div>
-
                 {% else %}
-
                 <div class="col-12">
-
                     <div class="empty-state">
-
                         <div style="font-size:4rem">🍺</div>
-
-                        <h4 class="mt-3">
-                            Каталог пуст
-                        </h4>
-
+                        <h4 class="mt-3">Каталог пуст</h4>
                     </div>
-
                 </div>
-
                 {% endfor %}
-
             </div>
-
         </main>
 
     </div>
-
 </div>
 
-<!-- ═════════ FILTER SCRIPT ═════════ -->
+<div class="modal fade" id="orderModal" tabindex="-1" aria-labelledby="orderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 18px; overflow: hidden;">
+            <div class="modal-header bg-dark text-white border-0">
+                <h5 class="modal-title fw-bold" id="orderModalLabel">Оформление предзаказа</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="orderForm">
+                    <input type="hidden" name="item_name" id="modal-item-name">
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Выбранный товар:</label>
+                        <input type="text" id="modal-beer-display" class="form-control fw-bold text-dark bg-light" readonly style="border: 2px solid var(--amber);">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="username" class="form-label small fw-bold">Ваше имя *</label>
+                        <input type="text" name="username" id="username" class="form-control" placeholder="Иван" required style="border-radius: 10px;">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="phone" class="form-label small fw-bold">Номер телефона *</label>
+                        <input type="tel"
+                               name="phone"
+                               id="phone"
+                               class="form-control"
+                               placeholder="+7 (707) 123-4567"
+                               pattern="^[\d\s\(\)\-\+]{10,20}$"
+                               title="Пожалуйста, введите корректный номер телефона (не менее 10 цифр)"
+                               required
+                               style="border-radius: 10px;">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="email" class="form-label small fw-bold">Email (необязательно)</label>
+                        <input type="email" name="email" id="email" class="form-control" placeholder="example@mail.ru" style="border-radius: 10px;">
+                    </div>
+
+                    <button type="submit" class="btn btn-warning w-100 py-2.5 fw-bold text-dark shadow-sm" style="background: var(--amber); border: none; border-radius: 12px;">
+                        📞 Подтвердить предзаказ
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
-
 const allCheckbox = document.getElementById("f-all");
 const lightCheckbox = document.getElementById("f-light");
 const darkCheckbox = document.getElementById("f-dark");
-
 const beers = document.querySelectorAll(".beer-item");
-
 const counter = document.getElementById("items-count");
 
-
 function filterBeers() {
-
     let visibleCount = 0;
-
     beers.forEach(beer => {
-
         const category = beer.dataset.category;
-
         if (allCheckbox.checked) {
-
             beer.style.display = "block";
             visibleCount++;
             return;
-
         }
-
         if (category === "light" && lightCheckbox.checked) {
-
             beer.style.display = "block";
             visibleCount++;
-
-        }
-
-        else if (category === "dark" && darkCheckbox.checked) {
-
+        } else if (category === "dark" && darkCheckbox.checked) {
             beer.style.display = "block";
             visibleCount++;
-
-        }
-
-        else {
-
+        } else {
             beer.style.display = "none";
-
         }
-
     });
-
     counter.innerText = visibleCount;
-
 }
 
-
-/* ───────── EVENTS ───────── */
-
 allCheckbox.addEventListener("change", () => {
-
     if (allCheckbox.checked) {
-
         lightCheckbox.checked = false;
         darkCheckbox.checked = false;
-
     }
-
     filterBeers();
-
 });
-
 
 lightCheckbox.addEventListener("change", () => {
-
     allCheckbox.checked = false;
-
     filterBeers();
-
 });
-
 
 darkCheckbox.addEventListener("change", () => {
-
     allCheckbox.checked = false;
-
     filterBeers();
-
 });
-
 
 filterBeers();
 
+// Подстановка названия в модальное окно
+const orderModal = document.getElementById('orderModal');
+if (orderModal) {
+    orderModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const beerTitle = button.getAttribute('data-beer-title');
+
+        const modalItemNameInput = document.getElementById('modal-item-name');
+        const modalBeerDisplayInput = document.getElementById('modal-beer-display');
+
+        modalItemNameInput.value = beerTitle;
+        modalBeerDisplayInput.value = beerTitle;
+    });
+}
+
+// AJAX отправка формы без перезагрузки страницы
+document.getElementById('orderForm').addEventListener('submit', async function(event) {
+    event.preventDefault();
+
+    const formData = new FormData(this);
+
+    try {
+        const response = await fetch('/submit-order', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (response.ok) {
+            alert('🎉 Предзаказ успешно оформлен! Уведомление отправлено в Telegram.');
+
+            const modalElement = document.getElementById('orderModal');
+            const modalInstance = bootstrap.Modal.getInstance(modalElement);
+            if (modalInstance) {
+                modalInstance.hide();
+            }
+            this.reset();
+        } else {
+            const errorData = await response.json();
+            alert('Ошибка: ' + (errorData.detail || 'Не удалось отправить заказ'));
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Произошла ошибка при отправке запроса.');
+    }
+});
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
 </html>
