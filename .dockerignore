@@ -1,0 +1,7 @@
+lnx_venv/
+.venv/
+__pycache__/
+*.pyc
+.git/
+.env
+*.db

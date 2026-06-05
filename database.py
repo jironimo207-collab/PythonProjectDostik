@@ -30,16 +30,16 @@ def init_db():
                 Beer(
                     title="Erzman",
                     price=1220,
-                    description="Тёмное",
+                    description="светлое пиво",
                     image="/static/images.webp",
-                    category="dark"
+                    category="light"
                 ),
                 Beer(
                     title="Жигулёвское",
                     price=1130,
                     description="Классическое светлое пиво.",
                     image="/static/images.webp",
-                    category="light"
+                    category="dark"
                 ),
                 Beer(
                     title="СССР",
