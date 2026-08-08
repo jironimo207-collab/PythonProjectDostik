@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOCTIC — Каталог</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Стили для верхней панели (Header) */
+        
+        .shop-header {
+            background-color: #18181b;
+            border-bottom: 2px solid #f59e0b;
+        }
+        /* Стили для боковых фильтров */
+        .filter-sidebar {
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        /* Аккуратные карточки товаров */
+        .product-card {
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            transition: transform 0.2s ease-in-out;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+        }
+        .card-img-top {
+            height: 220px;
+            object-fit: cover;
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body class="bg-light text-dark">
+
+    <header class="shop-header text-white py-3 mb-5 shadow-sm">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <span class="fs-2">🍺</span>
+                <div>
+                    <h1 class="h4 fw-black text-warning m-0 text-uppercase tracking-wider">DOCTIC</h1>
+                    <p class="small text-secondary m-0" style="font-size: 0.75rem;">Сеть магазинов разливного пива</p>
+                </div>
+            </div>
+            <nav class="d-none d-md-flex gap-4 small fw-medium">
+                <a href="#" class="text-warning text-decoration-none">Каталог</a>
+                <a href="#" class="text-white-50 text-decoration-none hover-white">Акции</a>
+                <a href="#" class="text-white-50 text-decoration-none hover-white">Адреса</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container mb-5">
+        <div class="row g-4">
+
+            <aside class="col-lg-3 col-md-4">
+                <div class="filter-sidebar p-4 position-sticky" style="top: 20px;">
+
+                    <div class="mb-4">
+                        <label for="searchInput" class="d-block text-muted small fw-bold text-uppercase mb-2" style="font-size: 0.75rem;">Поиск по названию</label>
+                        <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Введите название..." style="border-radius: 8px;">
+                    </div>
+
+                    <h5 class="fw-bold mb-3 d-flex align-items-center gap-2 text-dark pt-2 border-top">
+                        ⚡ Фильтры каталога
+                    </h5>
+
+                    <div class="mb-4">
+                        <span class="d-block text-muted small fw-bold text-uppercase mb-2" style="font-size: 0.75rem;">Категория</span>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" checked id="catAll">
+                            <label class="form-check-label small" for="catAll">Все сорта</label>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="col-lg-9 col-md-8">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <p class="text-muted small m-0">Найдено позиций: <strong class="text-dark" id="itemsCount">{{ items|length }}</strong></p>
+                </div>
+
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4" id="productsGrid">
+                    {% for item in items %}
+
+                    {% set item_name = item.name if item.name is defined else item.title %}
+                    {% set item_img = item.image if item.image is defined else (item.image_url if item.image_url is defined else '/static/images/default.png') %}
+
+                    <div class="col product-item" data-title="{{ item_name | lower }}">
+                        <div class="card h-100 product-card">
+                            <img class="card-img-top" src="{{ item_img }}" alt="{{ item_name }}">
+
+                            <div class="card-body d-flex flex-column justify-content-between p-4">
+                                <div>
+                                    <h5 class="card-title fw-bold text-dark mb-2 product-title">{{ item_name }}</h5>
+                                    <p class="card-text text-muted small mb-3">
+                                        {{ item.description or 'Описание готовится к публикации...' }}
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <p class="price mb-3 text-center"><strong>{{ item.price }} тг</strong></p>
+
+                                    <button type="button"
+                                            class="btn btn-warning w-100 fw-bold py-2 order-btn"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#orderModal"
+                                            data-itemname="{{ item_name }}"
+                                            style="border-radius: 10px;">
+                                        Предзаказ
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-12 text-center py-5" id="emptyPlaceholder">
+                        <p class="text-muted fs-5">Каталог пуст. Добавьте товары в базу данных 🍻</p>
+                    </div>
+                    {% endfor %}
+
+                    <div class="col-12 text-center py-5 d-none" id="searchPlaceholder">
+                        <p class="text-muted fs-5">Ничего не найдено по вашему запросу 🔍</p>
+                    </div>
+                </div>
+            </main>
+
+        </div>
+    </div>
+
+    <div class="modal fade" id="orderModal" tabindex="-1" aria-labelledby="orderModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 15px;">
+                <div class="modal-header bg-dark text-white" style="border-top-left-radius: 14px; border-top-right-radius: 14px;">
+                    <h5 class="modal-title fw-bold" id="orderModalLabel">Оформление предзаказа</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="orderForm">
+                        <input type="hidden" id="formItemName" name="item_name">
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Выбранный товар</label>
+                            <input type="text" id="displayItemName" class="form-control bg-light fw-bold" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="username" class="form-label small fw-bold text-muted">Ваше имя *</label>
+                            <input type="text" class="form-control" id="username" name="username" required placeholder="Иван">
+                        </div>
+                        <div class="mb-3">
+                            <label for="phone" class="form-label small fw-bold text-muted">Номер телефона *</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" required placeholder="+7 (707) 123-45-67">
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label small fw-bold text-muted">Email (необязательно)</label>
+                            <input type="email" class="form-control" id="email" name="email" placeholder="example@mail.com">
+                        </div>
+
+                        <div id="formErrorMessage" class="alert alert-danger d-none small py-2"></div>
+                        <div id="formSuccessMessage" class="alert alert-success d-none small py-2">Заказ успешно оформлен! Уведомление отправлено.</div>
+
+                        <button type="submit" class="btn btn-dark w-100 fw-bold py-2 mt-2" id="submitBtn" style="border-radius: 10px;">
+                            Подтвердить предзаказ
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Логика передачи названия пива из карточки в форму модального окна
+        const orderModal = document.getElementById('orderModal');
+        orderModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const itemName = button.getAttribute('data-itemname');
+
+            document.getElementById('formItemName').value = itemName;
+            document.getElementById('displayItemName').value = itemName;
+
+            // Сброс старых ошибок и текста при новом открытии окна
+            document.getElementById('formErrorMessage').classList.add('d-none');
+            document.getElementById('formSuccessMessage').classList.add('d-none');
+            document.getElementById('orderForm').reset();
+
+            // Повторно записываем, так как .reset() очищает поля
+            document.getElementById('formItemName').value = itemName;
+            document.getElementById('displayItemName').value = itemName;
+        });
+
+        // AJAX отправка данных на бэкенд /submit-order
+        document.getElementById('orderForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            const errorDiv = document.getElementById('formErrorMessage');
+            const successDiv = document.getElementById('formSuccessMessage');
+
+            errorDiv.classList.add('d-none');
+            successDiv.classList.add('d-none');
+            submitBtn.disabled = true;
+
+            const formData = new FormData(this);
+
+            try {
+                const response = await fetch('/submit-order', {
+                    method: 'POST',
+                    body: formData // Передаем как Form Data (FastAPI Form(...))
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.status === 'success') {
+                    successDiv.classList.remove('d-none');
+                    // Автоматически закрываем окно через 1.5 секунды после успеха
+                    setTimeout(() => {
+                        const modalInstance = bootstrap.Modal.getInstance(orderModal);
+                        modalInstance.hide();
+                    }, 1500);
+                } else {
+                    // Показываем ошибки валидации, прилетевшие из HTTPException бэкенда
+                    errorDiv.textContent = result.detail || 'Произошла ошибка при обработке заказа.';
+                    errorDiv.classList.remove('d-none');
+                }
+            } catch (err) {
+                errorDiv.textContent = 'Ошибка сети. Не удалось связаться с сервером.';
+                errorDiv.classList.remove('d-none');
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Живой поиск по каталогу товаров
+        const searchInput = document.getElementById('searchInput');
+        const productItems = document.querySelectorAll('.product-item');
+        const itemsCount = document.getElementById('itemsCount');
+        const searchPlaceholder = document.getElementById('searchPlaceholder');
+
+        searchInput.addEventListener('input', function () {
+            const query = this.value.toLowerCase().trim();
+            let visibleCount = 0;
+
+            productItems.forEach(item => {
+                const title = item.getAttribute('data-title');
+                if (title.includes(query)) {
+                    item.classList.remove('d-none');
+                    visibleCount++;
+                } else {
+                    item.classList.add('d-none');
+                }
+            });
+
+            itemsCount.textContent = visibleCount;
+
+            if (visibleCount === 0 && productItems.length > 0) {
+                searchPlaceholder.classList.remove('d-none');
+            } else {
+                searchPlaceholder.classList.add('d-none');
+            }
+        });
+    </script>
+</body>
+</html>
