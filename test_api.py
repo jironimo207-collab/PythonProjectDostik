@@ -12,37 +12,37 @@ def mock_tg(monkeypatch):
         return None
     monkeypatch.setattr(main, "send_tg_notification", fake_send)
 
-# Наши тест-кейсы
+# Наши тест-кейсы (username, phone, volume, total_price, expected_status, description)
 test_cases = [
-    ("№№№№№№№", "+7 (777) 123-45-6", 200, "Валидный заказ Erzman"),
-    ("Alex", "87071234567", 200, "Валидный заказ без спецсимволов"),
-    ("Иван", "123", 400, "Слишком короткий телефон"),
-    ("Иван", "not-a-number!!", 400, "Телефон содержит буквы"),
-    ("Я", "+77771234567", 400, "Слишком короткое имя (1 символ)"),
-    ("ОченьДлинноеИмяКотороеНеПройдетВалидациюПоДлине", "+77771234567", 400, "Слишком длинное имя"),
+    ("№№№№№№№", "+7 (777) 123-45-6", 1.5, 1220.0, 200, "Валидный заказ Erzman 1.5 л"),
+    ("Alex", "87071234567", 3.0, 2440.0, 200, "Валидный заказ 3.0 л без спецсимволов"),
+    ("Иван", "123", 1.5, 1220.0, 400, "Слишком короткий телефон"),
+    ("Иван", "not-a-number!!", 1.5, 1220.0, 400, "Телефон содержит буквы"),
+    ("Я", "+77771234567", 1.5, 1220.0, 400, "Слишком короткое имя (1 символ)"),
+    ("ОченьДлинноеИмяКотороеНеПройдетВалидациюПоДлине", "+77771234567", 1.5, 1220.0, 400, "Слишком длинное имя"),
 ]
 
-# Красивые системные имена для каждого теста вместо юникода
+# Системные имена для каждого теста
 test_ids = [
-    "valid_order_erzman",
-    "valid_order_clean_phone",
+    "valid_order_erzman_1_5l",
+    "valid_order_clean_phone_3l",
     "invalid_short_phone",
     "invalid_phone_with_letters",
     "invalid_short_username",
     "invalid_long_username"
 ]
 
-# Передаем параметры правильно
-@pytest.mark.parametrize("username, phone, expected_status, description", test_cases, ids=test_ids)
-def test_submit_order_security(username, phone, expected_status, description):
+@pytest.mark.parametrize("username, phone, volume, total_price, expected_status, description", test_cases, ids=test_ids)
+def test_submit_order_security(username, phone, volume, total_price, expected_status, description):
     response = client.post(
         "/submit-order",
         data={
             "item_name": "Erzman",
             "username": username,
             "phone": phone,
-            "email": "test@example.com"
-        }
-    )
+            "email": "test@example.com",
+            "volume": volume,
+            "total_price": total_price
+        })
     assert response.status_code == expected_status, \
         f"Тест '{description}' провален! Ждали {expected_status}, но получили {response.status_code}. Ответ: {response.text}"

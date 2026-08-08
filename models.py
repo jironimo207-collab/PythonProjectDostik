@@ -20,4 +20,6 @@ class Order(Base):
     customer_phone = Column(String, nullable=False)
     customer_email = Column(String, nullable=True)
     item_name = Column(String, nullable=False)
+    volume = Column(Float, nullable=False, default=1.0)  # <-- Новое поле (литры)
+    total_price = Column(Float, nullable=False, default=0.0)
     created_at = Column(DateTime, default=datetime.utcnow)
