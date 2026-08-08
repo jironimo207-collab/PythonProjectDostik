@@ -51,7 +51,7 @@ print("=" * 40 + "\n")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Подключение шаблонов Jinja2
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory=".")
 
 
 # Кастомный обработчик ошибок лимитера, чтобы фронтенд получал красивый текст вместо стандартной JSON ошибки
@@ -79,15 +79,16 @@ def home(request: Request, db: Session = Depends(get_db)):
 def health():
     return {"status": "ok"}
 
-
-async def send_tg_notification(name: str, phone: str, email: str, item: str):
+async def send_tg_notification(name: str, phone: str, email: str, item: str, volume: float, total_price: float):
     """Функция отправки мгновенного уведомления в ваш Telegram-бот"""
     text = (
         f"🚨 **НОВЫЙ ПРЕДЗАКАЗ!**\n\n"
         f"👤 **Имя:** {name}\n"
         f"📞 **Телефон:** {phone}\n"
         f"📧 **Email:** {email if email else 'Не указан'}\n"
-        f"📦 **Товар:** {item}\n\n"
+        f"🍺 **Товар:** {item}\n"
+        f"📏 **Объём:** {volume} л\n"
+        f"💰 **Итого к оплате:** {total_price} тг\n\n"
         f"🧑‍💻 Срочно перезвоните клиенту для уточнения деталей!"
     )
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
@@ -105,18 +106,18 @@ async def send_tg_notification(name: str, phone: str, email: str, item: str):
             print(f"Ошибка при отправке запроса в Telegram: {e}")
 
 
-# Обработка предзаказа с валидацией, сохранением в БД и отправкой в ТГ
 @app.post("/submit-order")
-@limiter.limit("10/minute")  # Лимит увеличен до 10 в минуту для комфортного тестирования администратором
+@limiter.limit("10/minute")
 async def handle_order(
-        request: Request,  # Обязательный параметр для корректной работы slowapi!
+        request: Request,
         item_name: str = Form(...),
         username: str = Form(...),
         phone: str = Form(...),
         email: str = Form(None),
+        volume: float = Form(1.0),            # <-- Новый параметр
+        total_price: float = Form(0.0),       # <-- Новый параметр
         db: Session = Depends(get_db)
 ):
-    # ИСПРАВЛЕНО: Проверяем существование товара по полю Beer.title, так как поля .name не существует в модели
     beer_exists = db.query(Beer).filter(Beer.title == item_name).first()
     if not beer_exists:
         raise HTTPException(
@@ -124,40 +125,43 @@ async def handle_order(
             detail="Указанный товар не существует в каталоге магазина."
         )
 
-    # Валидация телефона: удаляем пробелы, скобки, дефисы и плюсы, оставляя только чистые цифры
     clean_phone = re.sub(r'[\s()+-]', '', phone)
-
-    # Проверяем, что в номере остались только цифры и их количество находится в пределах от 10 до 15
     if not clean_phone.isdigit() or not (10 <= len(clean_phone) <= 15):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Некорректный формат номера телефона. Пожалуйста, введите реальный номер."
+            detail="Некорректный формат номера телефона."
         )
 
     clean_username = username.strip()
-    # Проверяем длину имени (от 2 до 30 символов)
     if not (2 <= len(clean_username) <= 30):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Некорректный формат имени. Пожалуйста, введите реальное имя (от 2 до 30 символов)."
+            detail="Некорректный формат имени (от 2 до 30 символов)."
         )
 
-    # 1. Сохраняем в локальную базу данных SQLite очищенные данные о заказе
+    # Сохраняем в базу данных
     new_order = Order(
         customer_name=clean_username,
         customer_phone=phone,
         customer_email=email,
-        item_name=item_name
+        item_name=item_name,
+        volume=volume,
+        total_price=total_price
     )
     db.add(new_order)
     db.commit()
 
-    # 2. Отправляем асинхронное уведомление в Telegram-бот администратора
-    await send_tg_notification(name=clean_username, phone=phone, email=email, item=item_name)
+    # Отправляем в Telegram
+    await send_tg_notification(
+        name=clean_username,
+        phone=phone,
+        email=email,
+        item=item_name,
+        volume=volume,
+        total_price=total_price
+    )
 
-    # 3. Возвращаем JSON-статус успеха, который корректно обработает JavaScript (fetch) на фронтенде
     return {"status": "success"}
-
 
 if __name__ == "__main__":
     # Запускаем приложение uvicorn на порту 8000 с автоперезагрузкой при изменении файлов
