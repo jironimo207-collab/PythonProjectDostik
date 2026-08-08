@@ -67,7 +67,7 @@ def init_db():
                     title="Мохито",
                     price=760,
                     description="Идеальный прохладительный напиток для жаркой погоды.",
-                    image="/static/moxito.jpg",
+                    image="/static/moxito.webp",
                     category="drink"
                 ),
 
