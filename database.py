@@ -37,7 +37,7 @@ def init_db():
                 Beer(
                     title="Жигулёвское",
                     price=1130,
-                    description="Классическое светлое пиво.",
+                    description="Классическое тёмное пиво.",
                     image="/static/images.webp",
                     category="dark"
                 ),
@@ -75,7 +75,7 @@ def init_db():
                     title="квас",
                     price=750,
                     description="Классический тёмный квас для жаркого дня.",
-                    image="/static/kvas.jpg",
+                    image="/static/kvas.webp",
                     category="drink"
                 )
             ]
