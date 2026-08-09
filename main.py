@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
-
+from zoneinfo import ZoneInfo
 # 1. ЗАГРУЖАЕМ ПЕРЕМЕННЫЕ ОКРУЖЕНИЯ САМЫМ ПЕРВЫМ ДЕЛОМ!
 # Это гарантирует, что все последующие импорты и модули увидят конфигурацию .env
 load_dotenv()
@@ -21,7 +21,7 @@ from slowapi.errors import RateLimitExceeded
 # Импортируем локальные инструменты работы с базой данных и модели
 from database import init_db, get_db
 from models import Beer, Order
-
+from datetime import datetime, time
 # Создаём необходимые папки для работы приложения
 os.makedirs("static/images", exist_ok=True)
 os.makedirs("templates", exist_ok=True)
@@ -118,6 +118,16 @@ async def handle_order(
         total_price: float = Form(0.0),       # <-- Новый параметр
         db: Session = Depends(get_db)
 ):
+    current_time = datetime.now().time()
+
+    start_time = time(9, 0)  # 09:00
+    end_time = time(22, 30)  # 22:30
+
+    if not (start_time <= current_time <= end_time):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Предзаказы принимаются только с 9:00 до 22:30. Пожалуйста, оформите заказ в рабочее время!"
+        )
     beer_exists = db.query(Beer).filter(Beer.title == item_name).first()
     if not beer_exists:
         raise HTTPException(
